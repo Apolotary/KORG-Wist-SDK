@@ -1,0 +1,9 @@
+KORG WIST (Wireless Sync-Start Technology) Software Development Kit
+Copyright (c) 2011, KORG INC.
+All rights reserved.
+
+sample/
+	sample code using WIST
+
+WIST/
+	WIST class library

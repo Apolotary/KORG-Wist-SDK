@@ -1,0 +1,14 @@
+//
+// Prefix header for all source files of the 'WISTSample' target in the 'WISTSample' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+    #import <UIKit/UIKit.h>
+#endif
+
+#ifdef DEBUG
+    #define DEBUG_LOG(...) NSLog(__VA_ARGS__)
+#else
+    #define DEBUG_LOG(...)
+#endif
