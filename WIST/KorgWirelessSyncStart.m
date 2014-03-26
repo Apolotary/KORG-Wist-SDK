@@ -9,29 +9,34 @@
 #import <mach/mach_time.h>
 #import "KorgWirelessSyncStart.h"
 
-@interface KorgGKSession : GKSession
-@end
+//@interface KorgGKSession : M
+//@end
+//
+//@implementation KorgGKSession
+//- (void)denyConnectionFromPeer:(NSString *)peerID
+//{
+//    [super denyConnectionFromPeer:peerID];
+//    [self.delegate session:self connectionWithPeerFailed:peerID withError:nil];
+//}
+//@end
 
-@implementation KorgGKSession
-- (void)denyConnectionFromPeer:(NSString *)peerID
-{
-    [super denyConnectionFromPeer:peerID];
-    [self.delegate session:self connectionWithPeerFailed:peerID withError:nil];
-}
-@end
 
+NSString * const kSessionType = @"jp.co.korg.wireless-sync-1";
+NSString * const kBrowserReadyForSearchNotification = @"BrowserReadyForSearch";
+NSString * const kServiceType = @"jp.co.korg.wireless-sync";
 
 @interface KorgWirelessSyncStart()
+
+@property (nonatomic, strong) NSMutableArray *mutableBlockedPeers;
+
 - (void)resetTime;
 - (void)forceDisconnect;
 - (void)timerFired:(NSTimer*)timer;
-@property (retain) GKSession* session;
+
 @end
 
 @implementation KorgWirelessSyncStart
 
-@synthesize delegate;
-@synthesize session;
 @synthesize isConnected = isConnected_;
 @synthesize isMaster = isMaster_;
 @synthesize latency = latency_;
@@ -50,6 +55,8 @@ enum
     kGKCommand_Delay                = 7,
 };
 
+#pragma mark - Init, dealloc and reset methods
+
 //  ---------------------------------------------------------------------------
 //      init
 //  ---------------------------------------------------------------------------
@@ -66,7 +73,12 @@ enum
 
         const NSTimeInterval    interval = 1.0 / 8.0;
         timer_ = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(timerFired:) userInfo:nil repeats:YES];
-        [self release];
+        
+        _peerID = nil;
+        _session = nil;
+        _browser = nil;
+        _advertiser = nil;
+        _mutableBlockedPeers = [NSMutableArray array];
     }
     return self;
 }
@@ -76,12 +88,10 @@ enum
 //  ---------------------------------------------------------------------------
 - (void)dealloc
 {
-    [self retain];
     [timer_ invalidate];
     [self forceDisconnect];
 
     self.delegate = nil;
-    [super dealloc];
 }
 
 //  ---------------------------------------------------------------------------
@@ -108,7 +118,7 @@ enum
     const BOOL  prevStatus = isConnected_;
     doDisconnectByMyself_ = YES;
 
-    [self.session disconnectFromAllPeers];
+    [self.session disconnect];
     self.session = nil;
     [self resetTime];
 
@@ -123,15 +133,49 @@ enum
     }
 }
 
+#pragma mark - Public method implementation
+
+-(void)setupPeerAndSessionWithDisplayName:(NSString *)displayName
+{
+    _peerID = [[MCPeerID alloc] initWithDisplayName:displayName];
+    [_mutableBlockedPeers addObject:_peerID];
+    
+    _session = [[MCSession alloc] initWithPeer:_peerID];
+    _session.delegate = self;
+}
+
+
+-(void)setupMCBrowser
+{
+    _browser = [[MCBrowserViewController alloc] initWithServiceType:kServiceType session:_session];
+    _browser.delegate = self;
+}
+
+
+-(void)advertiseSelf:(BOOL)shouldAdvertise
+{
+    if (shouldAdvertise)
+    {
+        _advertiser = [[MCAdvertiserAssistant alloc] initWithServiceType:kServiceType discoveryInfo:nil session:_session];
+        [_advertiser start];
+    }
+    else
+    {
+        [_advertiser stop];
+        _advertiser = nil;
+    }
+}
+
+#pragma mark - Connecting and sending data
 //  ---------------------------------------------------------------------------
 //      sendData:withDataMode
 //  ---------------------------------------------------------------------------
-- (void)sendData:(NSData *)data withDataMode:(GKSendDataMode)dataMode
+- (void)sendData:(NSData *)data withDataMode:(MCSessionSendDataMode)dataMode
 {
     if (isConnected_)
     {
         NSError*    error = nil;
-        const BOOL  sent = [self.session sendDataToAllPeers:data withDataMode:dataMode error:&error];
+        const BOOL  sent = [self.session sendData:data toPeers:self.session.connectedPeers withMode:dataMode error:&error];
         if (!sent)
         {
 #ifdef DEBUG
@@ -153,7 +197,7 @@ enum
         if (isConnected_)
         {
             NSArray*    commands = [NSArray arrayWithObjects:[NSNumber numberWithInt:kGKCommand_PeersLatencyChanged], nil];
-            [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:GKSendDataReliable];
+            [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:MCSessionSendDataReliable];
         }
     }
 }
@@ -167,11 +211,9 @@ enum
     {
         doDisconnectByMyself_ = NO;
         isMaster_ = NO;
-
-        GKPeerPickerController* picker = [[GKPeerPickerController alloc] init];
-        picker.delegate = self;
-        picker.connectionTypesMask = GKPeerPickerConnectionTypeNearby;
-        [picker show]; 
+        
+        [self setupMCBrowser];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kBrowserReadyForSearchNotification object:nil];
     }
 }
 
@@ -220,7 +262,7 @@ nanoSec2HostTime(uint64_t nanosec)
                                         [NSNumber numberWithInt:kGKCommand_Latency],
                                         [NSNumber numberWithUnsignedLongLong:self.latency],
                                         nil];
-                [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:GKSendDataReliable];
+                [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:MCSessionSendDataReliable];
             }
             break;
         case kGKCommand_Latency:
@@ -320,7 +362,7 @@ nanoSec2HostTime(uint64_t nanosec)
                                             [NSNumber numberWithUnsignedLongLong:[[dataArray objectAtIndex:1] unsignedLongLongValue]],
                                             [NSNumber numberWithUnsignedLongLong:hostTime2NanoSec(mach_absolute_time())],
                                             nil];
-                    [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:GKSendDataUnreliable];
+                    [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:MCSessionSendDataUnreliable];
                 }
                 break;
             case kGKCommand_RequestDelay:
@@ -328,7 +370,7 @@ nanoSec2HostTime(uint64_t nanosec)
                     NSArray*    commands = [NSArray arrayWithObjects:[NSNumber numberWithInt:kGKCommand_Delay],
                                             [NSNumber numberWithUnsignedLongLong:delay_],
                                             nil];
-                    [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:GKSendDataReliable];
+                    [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:MCSessionSendDataReliable];
                 }
                 break;
             case kGKCommand_StartSlave:
@@ -401,7 +443,7 @@ nanoSec2HostTime(uint64_t nanosec)
                                 [NSNumber numberWithUnsignedLongLong:slaveNanoSec],
                                 [NSNumber numberWithFloat:tempo],
                                 nil];
-        [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:GKSendDataReliable];
+        [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:MCSessionSendDataReliable];
     }
 }
 
@@ -417,7 +459,7 @@ nanoSec2HostTime(uint64_t nanosec)
                                 [NSNumber numberWithInt:kGKCommand_StopSlave],
                                 [NSNumber numberWithUnsignedLongLong:slaveNanoSec],
                                 nil];
-        [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:GKSendDataReliable];
+        [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:MCSessionSendDataReliable];
     }
 }
 
@@ -432,30 +474,28 @@ nanoSec2HostTime(uint64_t nanosec)
         if (!gotPeerLatency_)
         {
             NSArray*    request = [NSArray arrayWithObjects: [NSNumber numberWithInt:kGKCommand_RequestLatency], nil];
-            [self sendData:[NSKeyedArchiver archivedDataWithRootObject:request] withDataMode:GKSendDataReliable];
+            [self sendData:[NSKeyedArchiver archivedDataWithRootObject:request] withDataMode:MCSessionSendDataReliable];
         }
         if (isMaster_)
         {
             if (!gotPeerDelay_)
             {
                 NSArray*    request = [NSArray arrayWithObjects: [NSNumber numberWithInt:kGKCommand_RequestDelay], nil];
-                [self sendData:[NSKeyedArchiver archivedDataWithRootObject:request] withDataMode:GKSendDataReliable];
+                [self sendData:[NSKeyedArchiver archivedDataWithRootObject:request] withDataMode:MCSessionSendDataReliable];
             }
 
             NSArray*    commands = [NSArray arrayWithObjects:
                                     [NSNumber numberWithInt:kGKCommand_Beacon],
                                     [NSNumber numberWithUnsignedLongLong:hostTime2NanoSec(mach_absolute_time())],
                                     nil];
-            [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:GKSendDataUnreliable];
+            [self sendData:[NSKeyedArchiver archivedDataWithRootObject:commands] withDataMode:MCSessionSendDataUnreliable];
         }
     }
 }
 
-#pragma mark GKSessionDelegate
-//  ---------------------------------------------------------------------------
-//      receiveData:fromPeer:inSession:context
-//  ---------------------------------------------------------------------------
-- (void)receiveData:(NSData *)data fromPeer:(NSString *)peer inSession:(GKSession *)session context:(void *)context
+#pragma mark - MCSessionDelegate
+
+- (void)session:(MCSession *)session didReceiveData:(NSData *)data fromPeer:(MCPeerID *)peerID
 {
     if (isMaster_)
     {
@@ -467,26 +507,19 @@ nanoSec2HostTime(uint64_t nanosec)
     }
 }
 
-//  ---------------------------------------------------------------------------
-//      session:peer:didChangeState
-//  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session peer:(NSString *)peerID didChangeState:(GKPeerConnectionState)state
+- (void)session:(MCSession *)session peer:(MCPeerID *)peerID didChangeState:(MCSessionState)state;
 {
     switch (state)
     {
-        case GKPeerStateAvailable:
+        case MCSessionStateConnected:
             break;
-        case GKPeerStateUnavailable:
+        case MCSessionStateConnecting:
             break;
-        case GKPeerStateConnected:
-            break;
-        case GKPeerStateConnecting:
-            break;
-        case GKPeerStateDisconnected:
+        case MCSessionStateNotConnected:
             if (!doDisconnectByMyself_)
             {
                 NSString*   message = [NSString stringWithFormat:@"Lost connection with %@.", isMaster_ ? @"slave" : @"master"];
-                UIAlertView*    alert = [[[UIAlertView alloc] initWithTitle:nil message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
+                UIAlertView*    alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                 [alert show];
             }
             [self forceDisconnect];
@@ -496,70 +529,64 @@ nanoSec2HostTime(uint64_t nanosec)
     }
 }
 
-//  ---------------------------------------------------------------------------
-//      session:didReceiveConnectionRequestFromPeer
-//  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session didReceiveConnectionRequestFromPeer:(NSString *)peerID
+// Received a byte stream from remote peer
+- (void)session:(MCSession *)session didReceiveStream:(NSInputStream *)stream withName:(NSString *)streamName fromPeer:(MCPeerID *)peerID
+{
+    
+}
+
+// Start receiving a resource from remote peer
+- (void)session:(MCSession *)session didStartReceivingResourceWithName:(NSString *)resourceName fromPeer:(MCPeerID *)peerID withProgress:(NSProgress *)progress
+{
+    NSLog(@"Receiving file: %@ from: %@", resourceName, peerID.displayName);
+}
+
+// Finished receiving a resource from remote peer and saved the content in a temporary location - the app is responsible for moving the file to a permanent location within its sandbox
+- (void)session:(MCSession *)session didFinishReceivingResourceWithName:(NSString *)resourceName fromPeer:(MCPeerID *)peerID atURL:(NSURL *)localURL withError:(NSError *)error
+{
+    NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentPath = [searchPaths objectAtIndex:0];
+    
+    NSURL *destinationURL = [NSURL fileURLWithPath:documentPath];
+    
+    NSError *managerError;
+    
+    if (![[NSFileManager defaultManager] moveItemAtURL:localURL
+                                                 toURL:destinationURL
+                                                 error:&managerError]) {
+        NSLog(@"[Error] %@", managerError);
+    }
+    
+    NSURL *resultURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", destinationURL.absoluteString, resourceName]];
+    NSLog(@"result url: %@", resultURL.absoluteString);
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:kMCFileReceivedNotification object:nil userInfo:@{kMCFileReceivedURL : resultURL}];
+}
+
+#pragma mark - Browser delegate
+
+- (void)browserViewControllerDidFinish:(MCBrowserViewController *)browserViewController
 {
     isMaster_ = YES;
-}
-
-//  ---------------------------------------------------------------------------
-//      session:connectionWithPeerFailed:withError
-//  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session connectionWithPeerFailed:(NSString *)peerID withError:(NSError *)error
-{
-    isMaster_ = NO;
-}
-
-//  ---------------------------------------------------------------------------
-//      session:didFailWithError
-//  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session didFailWithError:(NSError *)error
-{
-    isMaster_ = NO;
-}
-
-#pragma mark GKPeerPickerControllerDelegate
-//  ---------------------------------------------------------------------------
-//      peerPickerControllerDidCancel
-//  ---------------------------------------------------------------------------
-- (void)peerPickerControllerDidCancel:(GKPeerPickerController *)picker
-{
-    if (self.delegate && [self.delegate respondsToSelector:@selector(wistConnectionCancelled)])
-    {
-        [self.delegate performSelector:@selector(wistConnectionCancelled) withObject:nil];
-    }
-    [picker release];
-    self.session = nil;
-}
-
-//  ---------------------------------------------------------------------------
-//      peerPickerController:didConnectPeer:toSession
-//  ---------------------------------------------------------------------------
-- (void)peerPickerController:(GKPeerPickerController *)picker didConnectPeer:(NSString *)peerID toSession:(GKSession *)session
-{
-    [picker dismiss];
-    [picker release];
-    [self.session setDataReceiveHandler:self withContext:nil];
     isConnected_ = YES;
-
     if (self.delegate && [self.delegate respondsToSelector:@selector(wistConnectionEstablished)])
     {
         [self.delegate performSelector:@selector(wistConnectionEstablished) withObject:nil];
     }
+    [_browser dismissViewControllerAnimated:YES completion:nil];
 }
 
-//  ---------------------------------------------------------------------------
-//      peerPickerController:sessionForConnectionType
-//  ---------------------------------------------------------------------------
-- (GKSession *)peerPickerController:(GKPeerPickerController *)picker sessionForConnectionType:(GKPeerPickerConnectionType)type 
+- (void)browserViewControllerWasCancelled:(MCBrowserViewController *)browserViewController
 {
-    NSString*   sessionId = @"jp.co.korg.wireless-sync-1";  //  don't change this session id
-    GKSession*  gk = [[[KorgGKSession alloc] initWithSessionID:sessionId displayName:nil sessionMode:GKSessionModePeer] autorelease];
-    gk.delegate = self;
-    self.session = gk;
-    return self.session;
+    isMaster_ = NO;
+    if (self.delegate && [self.delegate respondsToSelector:@selector(wistConnectionCancelled)])
+    {
+        [self.delegate performSelector:@selector(wistConnectionCancelled) withObject:nil];
+    }
+
+    [_browser dismissViewControllerAnimated:YES completion:nil];
 }
+
+
 
 @end

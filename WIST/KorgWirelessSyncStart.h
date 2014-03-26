@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <GameKit/GameKit.h>
+#import <MultipeerConnectivity/MultipeerConnectivity.h>
 #import <stdint.h>
 
 @protocol KorgWirelessSyncStartDelegate <NSObject>
@@ -25,11 +25,17 @@
 
 @end
 
-@interface KorgWirelessSyncStart : NSObject <GKPeerPickerControllerDelegate, GKSessionDelegate>
+// Custom constants
+
+extern NSString * const kSessionType;
+extern NSString * const kServiceType;
+extern NSString * const kMCFileReceivedNotification;
+extern NSString * const kMCFileReceivedURL;
+
+@interface KorgWirelessSyncStart : NSObject <MCSessionDelegate, MCBrowserViewControllerDelegate, MCAdvertiserAssistantDelegate>
 {
 @private
-    id<KorgWirelessSyncStartDelegate>   delegate;
-    GKSession*  session;
+    id<KorgWirelessSyncStartDelegate> delegate;
     BOOL        isConnected_;
     BOOL        isMaster_;
     BOOL        doDisconnectByMyself_;
@@ -45,10 +51,20 @@
     NSTimer*    timer_;
 }
 
-@property (nonatomic, assign) id<KorgWirelessSyncStartDelegate> delegate;
-@property (nonatomic, assign) uint64_t latency;     //  unit:nanosec
+@property (nonatomic, strong) MCBrowserViewController *browser;
+@property (nonatomic, strong) MCPeerID *peerID;
+@property (nonatomic, strong) MCAdvertiserAssistant *advertiser;
+@property (nonatomic, strong) MCSession *session;
+
+@property (nonatomic, weak) id<KorgWirelessSyncStartDelegate> delegate;
+@property (nonatomic) uint64_t latency;     //  unit:nanosec
 @property (nonatomic, readonly) BOOL isConnected;   //  connection status
 @property (nonatomic, readonly) BOOL isMaster;      //  YES:master, NO:slave
+
+
+-(void)setupPeerAndSessionWithDisplayName:(NSString *)displayName;
+-(void)setupMCBrowser;
+-(void)advertiseSelf:(BOOL)shouldAdvertise;
 
 - (id)init;
 
