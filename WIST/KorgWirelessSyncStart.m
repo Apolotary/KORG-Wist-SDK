@@ -9,14 +9,14 @@
 #import <mach/mach_time.h>
 #import "KorgWirelessSyncStart.h"
 
-@interface KorgGKSession : GKSession
+@interface KorgGKSession : MCSession
 @end
 
 @implementation KorgGKSession
 - (void)denyConnectionFromPeer:(NSString *)peerID
 {
-    [super denyConnectionFromPeer:peerID];
-    [self.delegate session:self connectionWithPeerFailed:peerID withError:nil];
+//    [super denyConnectionFromPeer:peerID];
+//    [self.delegate session:self connectionWithPeerFailed:peerID withError:nil];
 }
 @end
 
@@ -25,7 +25,7 @@
 - (void)resetTime;
 - (void)forceDisconnect;
 - (void)timerFired:(NSTimer*)timer;
-@property (retain) GKSession* session;
+@property (retain) MCSession* session;
 @end
 
 @implementation KorgWirelessSyncStart
@@ -66,7 +66,6 @@ enum
 
         const NSTimeInterval    interval = 1.0 / 8.0;
         timer_ = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(timerFired:) userInfo:nil repeats:YES];
-        [self release];
     }
     return self;
 }
@@ -126,20 +125,20 @@ enum
 //  ---------------------------------------------------------------------------
 //      sendData:withDataMode
 //  ---------------------------------------------------------------------------
-- (void)sendData:(NSData *)data withDataMode:(GKSendDataMode)dataMode
-{
-    if (isConnected_)
-    {
-        NSError*    error = nil;
-        const BOOL  sent = [self.session sendDataToAllPeers:data withDataMode:dataMode error:&error];
-        if (!sent)
-        {
-#ifdef DEBUG
-            NSLog(@"KorgWirelessSyncStart sendData failed: %@", [error localizedDescription]);
-#endif
-        }
-    }
-}
+//- (void)sendData:(NSData *)data withDataMode:(GKSendDataMode)dataMode
+//{
+//    if (isConnected_)
+//    {
+//        NSError*    error = nil;
+//        const BOOL  sent = [self.session sendDataToAllPeers:data withDataMode:dataMode error:&error];
+//        if (!sent)
+//        {
+//#ifdef DEBUG
+//            NSLog(@"KorgWirelessSyncStart sendData failed: %@", [error localizedDescription]);
+//#endif
+//        }
+//    }
+//}
 
 //  ---------------------------------------------------------------------------
 //      setLatency
@@ -168,10 +167,10 @@ enum
         doDisconnectByMyself_ = NO;
         isMaster_ = NO;
 
-        GKPeerPickerController* picker = [[GKPeerPickerController alloc] init];
-        picker.delegate = self;
-        picker.connectionTypesMask = GKPeerPickerConnectionTypeNearby;
-        [picker show]; 
+//        GKPeerPickerController* picker = [[GKPeerPickerController alloc] init];
+//        picker.delegate = self;
+//        picker.connectionTypesMask = GKPeerPickerConnectionTypeNearby;
+//        [picker show];
     }
 }
 
@@ -455,111 +454,111 @@ nanoSec2HostTime(uint64_t nanosec)
 //  ---------------------------------------------------------------------------
 //      receiveData:fromPeer:inSession:context
 //  ---------------------------------------------------------------------------
-- (void)receiveData:(NSData *)data fromPeer:(NSString *)peer inSession:(GKSession *)session context:(void *)context
-{
-    if (isMaster_)
-    {
-        [self receiveDataInMasterMode:data];
-    }
-    else
-    {
-        [self receiveDataInSlaveMode:data];
-    }
-}
+//- (void)receiveData:(NSData *)data fromPeer:(NSString *)peer inSession:(GKSession *)session context:(void *)context
+//{
+//    if (isMaster_)
+//    {
+//        [self receiveDataInMasterMode:data];
+//    }
+//    else
+//    {
+//        [self receiveDataInSlaveMode:data];
+//    }
+//}
 
 //  ---------------------------------------------------------------------------
 //      session:peer:didChangeState
 //  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session peer:(NSString *)peerID didChangeState:(GKPeerConnectionState)state
-{
-    switch (state)
-    {
-        case GKPeerStateAvailable:
-            break;
-        case GKPeerStateUnavailable:
-            break;
-        case GKPeerStateConnected:
-            break;
-        case GKPeerStateConnecting:
-            break;
-        case GKPeerStateDisconnected:
-            if (!doDisconnectByMyself_)
-            {
-                NSString*   message = [NSString stringWithFormat:@"Lost connection with %@.", isMaster_ ? @"slave" : @"master"];
-                UIAlertView*    alert = [[[UIAlertView alloc] initWithTitle:nil message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
-                [alert show];
-            }
-            [self forceDisconnect];
-            break;
-        default:
-            break;
-    }
-}
+//- (void)session:(GKSession *)session peer:(NSString *)peerID didChangeState:(GKPeerConnectionState)state
+//{
+//    switch (state)
+//    {
+//        case GKPeerStateAvailable:
+//            break;
+//        case GKPeerStateUnavailable:
+//            break;
+//        case GKPeerStateConnected:
+//            break;
+//        case GKPeerStateConnecting:
+//            break;
+//        case GKPeerStateDisconnected:
+//            if (!doDisconnectByMyself_)
+//            {
+//                NSString*   message = [NSString stringWithFormat:@"Lost connection with %@.", isMaster_ ? @"slave" : @"master"];
+//                UIAlertView*    alert = [[[UIAlertView alloc] initWithTitle:nil message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
+//                [alert show];
+//            }
+//            [self forceDisconnect];
+//            break;
+//        default:
+//            break;
+//    }
+//}
 
 //  ---------------------------------------------------------------------------
 //      session:didReceiveConnectionRequestFromPeer
 //  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session didReceiveConnectionRequestFromPeer:(NSString *)peerID
-{
-    isMaster_ = YES;
-}
+//- (void)session:(GKSession *)session didReceiveConnectionRequestFromPeer:(NSString *)peerID
+//{
+//    isMaster_ = YES;
+//}
 
 //  ---------------------------------------------------------------------------
 //      session:connectionWithPeerFailed:withError
 //  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session connectionWithPeerFailed:(NSString *)peerID withError:(NSError *)error
-{
-    isMaster_ = NO;
-}
+//- (void)session:(GKSession *)session connectionWithPeerFailed:(NSString *)peerID withError:(NSError *)error
+//{
+//    isMaster_ = NO;
+//}
 
 //  ---------------------------------------------------------------------------
 //      session:didFailWithError
 //  ---------------------------------------------------------------------------
-- (void)session:(GKSession *)session didFailWithError:(NSError *)error
-{
-    isMaster_ = NO;
-}
+//- (void)session:(GKSession *)session didFailWithError:(NSError *)error
+//{
+//    isMaster_ = NO;
+//}
 
 #pragma mark GKPeerPickerControllerDelegate
 //  ---------------------------------------------------------------------------
 //      peerPickerControllerDidCancel
 //  ---------------------------------------------------------------------------
-- (void)peerPickerControllerDidCancel:(GKPeerPickerController *)picker
-{
-    if (self.delegate && [self.delegate respondsToSelector:@selector(wistConnectionCancelled)])
-    {
-        [self.delegate performSelector:@selector(wistConnectionCancelled) withObject:nil];
-    }
-    [picker release];
-    self.session = nil;
-}
+//- (void)peerPickerControllerDidCancel:(GKPeerPickerController *)picker
+//{
+//    if (self.delegate && [self.delegate respondsToSelector:@selector(wistConnectionCancelled)])
+//    {
+//        [self.delegate performSelector:@selector(wistConnectionCancelled) withObject:nil];
+//    }
+//    [picker release];
+//    self.session = nil;
+//}
 
 //  ---------------------------------------------------------------------------
 //      peerPickerController:didConnectPeer:toSession
 //  ---------------------------------------------------------------------------
-- (void)peerPickerController:(GKPeerPickerController *)picker didConnectPeer:(NSString *)peerID toSession:(GKSession *)session
-{
-    [picker dismiss];
-    [picker release];
-    [self.session setDataReceiveHandler:self withContext:nil];
-    isConnected_ = YES;
-
-    if (self.delegate && [self.delegate respondsToSelector:@selector(wistConnectionEstablished)])
-    {
-        [self.delegate performSelector:@selector(wistConnectionEstablished) withObject:nil];
-    }
-}
+//- (void)peerPickerController:(GKPeerPickerController *)picker didConnectPeer:(NSString *)peerID toSession:(GKSession *)session
+//{
+//    [picker dismiss];
+//    [picker release];
+//    [self.session setDataReceiveHandler:self withContext:nil];
+//    isConnected_ = YES;
+//
+//    if (self.delegate && [self.delegate respondsToSelector:@selector(wistConnectionEstablished)])
+//    {
+//        [self.delegate performSelector:@selector(wistConnectionEstablished) withObject:nil];
+//    }
+//}
 
 //  ---------------------------------------------------------------------------
 //      peerPickerController:sessionForConnectionType
 //  ---------------------------------------------------------------------------
-- (GKSession *)peerPickerController:(GKPeerPickerController *)picker sessionForConnectionType:(GKPeerPickerConnectionType)type 
-{
-    NSString*   sessionId = @"jp.co.korg.wireless-sync-1";  //  don't change this session id
-    GKSession*  gk = [[[KorgGKSession alloc] initWithSessionID:sessionId displayName:nil sessionMode:GKSessionModePeer] autorelease];
-    gk.delegate = self;
-    self.session = gk;
-    return self.session;
-}
+//- (GKSession *)peerPickerController:(GKPeerPickerController *)picker sessionForConnectionType:(GKPeerPickerConnectionType)type 
+//{
+//    NSString*   sessionId = @"jp.co.korg.wireless-sync-1";  //  don't change this session id
+//    GKSession*  gk = [[[KorgGKSession alloc] initWithSessionID:sessionId displayName:nil sessionMode:GKSessionModePeer] autorelease];
+//    gk.delegate = self;
+//    self.session = gk;
+//    return self.session;
+//}
 
 @end

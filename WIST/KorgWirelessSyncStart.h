@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <GameKit/GameKit.h>
+#import <MultipeerConnectivity/MultipeerConnectivity.h>
 #import <stdint.h>
 
 @protocol KorgWirelessSyncStartDelegate <NSObject>
@@ -28,7 +28,7 @@
 @interface KorgWirelessSyncStart : NSObject <GKPeerPickerControllerDelegate, GKSessionDelegate>
 {
 @private
-    id<KorgWirelessSyncStartDelegate>   delegate;
+    __unsafe_unretained id<KorgWirelessSyncStartDelegate>   delegate;
     GKSession*  session;
     BOOL        isConnected_;
     BOOL        isMaster_;
