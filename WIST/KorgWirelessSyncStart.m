@@ -21,9 +21,10 @@
 //@end
 
 
-NSString * const kSessionType = @"jp.co.korg.wireless-sync-1";
-NSString * const kBrowserReadyForSearchNotification = @"BrowserReadyForSearch";
-NSString * const kServiceType = @"jp.co.korg.wireless-sync";
+NSString * const kSessionType = @"wist-session";
+NSString * const kMCFileReceivedNotification = @"FileReceivedNotification";
+NSString * const kMCFileReceivedURL = @"FileReceivedURL";
+NSString * const kServiceType = @"wist-service";
 
 @interface KorgWirelessSyncStart()
 
@@ -119,7 +120,6 @@ enum
     doDisconnectByMyself_ = YES;
 
     [self.session disconnect];
-    self.session = nil;
     [self resetTime];
 
     isConnected_ = NO;
@@ -148,6 +148,7 @@ enum
 -(void)setupMCBrowser
 {
     _browser = [[MCBrowserViewController alloc] initWithServiceType:kServiceType session:_session];
+    [_browser setMinimumNumberOfPeers:0];
     _browser.delegate = self;
 }
 
@@ -211,9 +212,6 @@ enum
     {
         doDisconnectByMyself_ = NO;
         isMaster_ = NO;
-        
-        [self setupMCBrowser];
-        [[NSNotificationCenter defaultCenter] postNotificationName:kBrowserReadyForSearchNotification object:nil];
     }
 }
 

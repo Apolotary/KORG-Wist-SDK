@@ -7,27 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
+		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765FC0DF74451002DB57D /* CoreGraphics.framework */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		2A83465C135EA26700EB7C26 /* KorgWirelessSyncStart.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A83465B135EA26700EB7C26 /* KorgWirelessSyncStart.m */; };
-		2A834661135EA27A00EB7C26 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A834660135EA27A00EB7C26 /* GameKit.framework */; };
 		2A83466C135EA2D600EB7C26 /* WISTSampleViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2A83466B135EA2D600EB7C26 /* WISTSampleViewController.xib */; };
-		2A834686135EA31B00EB7C26 /* DrumOscillator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A83467A135EA31B00EB7C26 /* DrumOscillator.mm */; };
-		2A834687135EA31B00EB7C26 /* AudioIO.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A83467C135EA31B00EB7C26 /* AudioIO.mm */; };
-		2A834688135EA31B00EB7C26 /* Sequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A83467F135EA31B00EB7C26 /* Sequencer.cpp */; };
-		2A834689135EA31B00EB7C26 /* Synthesizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A834681135EA31B00EB7C26 /* Synthesizer.cpp */; };
-		2A83468A135EA31B00EB7C26 /* WISTSampleAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A834683135EA31B00EB7C26 /* WISTSampleAppDelegate.mm */; };
-		2A83468B135EA31B00EB7C26 /* WISTSampleViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A834685135EA31B00EB7C26 /* WISTSampleViewController.mm */; };
+		2A834686135EA31B00EB7C26 /* DrumOscillator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A83467A135EA31B00EB7C26 /* DrumOscillator.mm */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A834687135EA31B00EB7C26 /* AudioIO.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A83467C135EA31B00EB7C26 /* AudioIO.mm */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A834688135EA31B00EB7C26 /* Sequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A83467F135EA31B00EB7C26 /* Sequencer.cpp */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A834689135EA31B00EB7C26 /* Synthesizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A834681135EA31B00EB7C26 /* Synthesizer.cpp */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A83468A135EA31B00EB7C26 /* WISTSampleAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A834683135EA31B00EB7C26 /* WISTSampleAppDelegate.mm */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A83468B135EA31B00EB7C26 /* WISTSampleViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2A834685135EA31B00EB7C26 /* WISTSampleViewController.mm */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A83468F135EA33700EB7C26 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A83468E135EA33700EB7C26 /* AudioToolbox.framework */; };
 		2A834699135EA36F00EB7C26 /* kick.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2A834695135EA36F00EB7C26 /* kick.wav */; };
 		2A83469A135EA36F00EB7C26 /* noiz.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2A834696135EA36F00EB7C26 /* noiz.wav */; };
 		2A83469B135EA36F00EB7C26 /* snare.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2A834697135EA36F00EB7C26 /* snare.wav */; };
 		2A83469C135EA36F00EB7C26 /* zap.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2A834698135EA36F00EB7C26 /* zap.wav */; };
 		2AD131701384AB8300471E5F /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 2AD1316F1384AB8300471E5F /* Icon.png */; };
-		2AE22F5C13B14C560041E927 /* AboutWISTViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AE22F5B13B14C560041E927 /* AboutWISTViewController.m */; };
+		2AE22F5C13B14C560041E927 /* AboutWISTViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AE22F5B13B14C560041E927 /* AboutWISTViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		43D6EA7F18E301080020A713 /* MultipeerConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43D6EA7E18E301080020A713 /* MultipeerConnectivity.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +64,7 @@
 		2AE22F5A13B14C560041E927 /* AboutWISTViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AboutWISTViewController.h; path = ../WIST/AboutWISTViewController.h; sourceTree = SOURCE_ROOT; };
 		2AE22F5B13B14C560041E927 /* AboutWISTViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AboutWISTViewController.m; path = ../WIST/AboutWISTViewController.m; sourceTree = SOURCE_ROOT; };
 		32CA4F630368D1EE00C91783 /* WISTSample_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WISTSample_Prefix.pch; sourceTree = "<group>"; };
+		43D6EA7E18E301080020A713 /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
 		8D1107310486CEB800E47090 /* WISTSample-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "WISTSample-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -72,10 +73,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43D6EA7F18E301080020A713 /* MultipeerConnectivity.framework in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */,
-				2A834661135EA27A00EB7C26 /* GameKit.framework in Frameworks */,
 				2A83468F135EA33700EB7C26 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -149,6 +150,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				43D6EA7E18E301080020A713 /* MultipeerConnectivity.framework */,
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
 				288765FC0DF74451002DB57D /* CoreGraphics.framework */,

@@ -43,6 +43,10 @@
         wist_ = [[KorgWirelessSyncStart alloc] init];
         wist_.delegate = self;
 
+        [wist_ setupPeerAndSessionWithDisplayName:[UIDevice currentDevice].name];
+        [wist_ advertiseSelf:YES];
+        [wist_ setupMCBrowser];
+
         const float fs = 44100.0f;
         synth_ = new Synthesizer(fs);
         audioIo_ = new AudioIO(fs);
@@ -207,6 +211,7 @@
     {
         wist_.latency = [self latency];
         [wist_ searchPeer];
+        [self presentViewController:wist_.browser animated:YES completion:nil];
     }
 }
 
