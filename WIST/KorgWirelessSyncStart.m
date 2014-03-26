@@ -25,6 +25,7 @@ NSString * const kSessionType = @"wist-session";
 NSString * const kMCFileReceivedNotification = @"FileReceivedNotification";
 NSString * const kMCFileReceivedURL = @"FileReceivedURL";
 NSString * const kServiceType = @"wist-service";
+NSString * const kMCBrowserDismissNotification = @"BrowserDismissNotification";
 
 @interface KorgWirelessSyncStart()
 
@@ -514,14 +515,18 @@ nanoSec2HostTime(uint64_t nanosec)
         case MCSessionStateConnecting:
             break;
         case MCSessionStateNotConnected:
-            if (!doDisconnectByMyself_)
-            {
-                NSString*   message = [NSString stringWithFormat:@"Lost connection with %@.", isMaster_ ? @"slave" : @"master"];
-                UIAlertView*    alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-                [alert show];
-            }
-            [self forceDisconnect];
+        {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (!doDisconnectByMyself_)
+                {
+                    NSString*   message = [NSString stringWithFormat:@"Lost connection with %@.", isMaster_ ? @"slave" : @"master"];
+                    UIAlertView*    alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                    [alert show];
+                }
+                [self forceDisconnect];
+            });
             break;
+        }
         default:
             break;
     }
@@ -571,7 +576,7 @@ nanoSec2HostTime(uint64_t nanosec)
     {
         [self.delegate performSelector:@selector(wistConnectionEstablished) withObject:nil];
     }
-    [_browser dismissViewControllerAnimated:YES completion:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kMCBrowserDismissNotification object:nil];
 }
 
 - (void)browserViewControllerWasCancelled:(MCBrowserViewController *)browserViewController
@@ -581,8 +586,7 @@ nanoSec2HostTime(uint64_t nanosec)
     {
         [self.delegate performSelector:@selector(wistConnectionCancelled) withObject:nil];
     }
-
-    [_browser dismissViewControllerAnimated:YES completion:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kMCBrowserDismissNotification object:nil];
 }
 
 

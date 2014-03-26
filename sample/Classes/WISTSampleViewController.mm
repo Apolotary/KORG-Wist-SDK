@@ -46,6 +46,8 @@
         [wist_ setupPeerAndSessionWithDisplayName:[UIDevice currentDevice].name];
         [wist_ advertiseSelf:YES];
         [wist_ setupMCBrowser];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(dismissBrowser) name:kMCBrowserDismissNotification object:nil];
 
         const float fs = 44100.0f;
         synth_ = new Synthesizer(fs);
@@ -55,6 +57,11 @@
         audioIo_->Start();
     }
     return self;
+}
+
+- (void) dismissBrowser
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 //  ---------------------------------------------------------------------------
@@ -76,6 +83,8 @@
 //  ---------------------------------------------------------------------------
 - (void)dealloc
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:kMCBrowserDismissNotification object:nil];
+    
     delete audioIo_;
     audioIo_ = NULL;
     delete synth_;
@@ -137,8 +146,10 @@
 //  ---------------------------------------------------------------------------
 - (void)updateTempoUI:(BOOL)animated
 {
-    [tempoSlider setValue:self.tempo animated:animated];
-    self.tempoText.text = [NSString stringWithFormat:@"%3.1f", self.tempo];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [tempoSlider setValue:self.tempo animated:YES];
+        self.tempoText.text = [NSString stringWithFormat:@"%3.1f", self.tempo];
+    });
 }
 
 //  ---------------------------------------------------------------------------
@@ -291,7 +302,7 @@
 //  ---------------------------------------------------------------------------
 - (void)closeAboutButtonPushed:(id)sender
 {
-    [self dismissModalViewControllerAnimated:YES];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 //  ---------------------------------------------------------------------------
@@ -304,7 +315,7 @@
                                                                                                        target:self
                                                                                                        action:@selector(closeAboutButtonPushed:)] autorelease];
     UINavigationController* nav = [[[UINavigationController alloc] initWithRootViewController:aboutController] autorelease];
-    [self presentModalViewController:nav animated:YES];
+    [self presentViewController:nav animated:YES completion:nil];
 }
 
 //  ---------------------------------------------------------------------------
